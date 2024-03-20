@@ -74,7 +74,9 @@ append([H|T],L2,[H|R]):-
 
 % getItemsInOrderById predicate take the CustomerName and the OrderId and return the items
 
-%getItemsInOrderById(CustomerName, OrderId ,Items):-
+getItemsInOrderById(CustomerName, OrderId ,Items):-
+    customer(X, CustomerName),   % get the customer id (X)
+    order(X, OrderId, Items), !. % get the items
 
 
 
@@ -86,8 +88,8 @@ append([H|T],L2,[H|R]):-
 
 getNumOfItems(CustomerName, OrderId ,Count):-
     customer(X, CustomerName),  % get the customer id (X)
-    order(X, OrderId, Items), % get the items
-    count(Items, Count).  % get the number of items in the order (Count)
+    order(X, OrderId, Items),   % get the items
+    count(Items, Count).        % get the number of items in the order (Count)
 
 
 %=======================================================================
@@ -103,9 +105,15 @@ getNumOfItems(CustomerName, OrderId ,Count):-
 %=======================================================================
 % Task 6
 
+% IsBoycott take the item name and reutrn if is isBoycott or not
+
+%  isBoycott(ItemName):-
+   
+
 % isBoycott take the item name and reutrn if is isBoycott or not
 
-% isBoycott(ItemName):-
+%  isBoycott(CompanyName):-
+   
 
 
 
@@ -115,12 +123,15 @@ getNumOfItems(CustomerName, OrderId ,Count):-
 
 % whyToBoycott take the item name and return the Justification that why this item isBoycott
 
-%whyToBoycott(ItemName, Justification):-
+whyToBoycott(ItemName, Justification):-
+    item(ItemName,X,_),                  % get company name
+    boycott_company(X,Justification),!.  % get the Justification
 
 
 % whyToBoycott take the company name and return the Justification that why this item isBoycott
 
-%whyToBoycott(CompanyName, Justification):-
+whyToBoycott(CompanyName, Justification):-
+    boycott_company(CompanyName,Justification),!. % get the Justification
 
 
 %=======================================================================
@@ -131,7 +142,19 @@ getNumOfItems(CustomerName, OrderId ,Count):-
 % removeBoycottItemsFromAnOrder take the CustomerName and OrderId and return the list of items
 % after remove the boycott item from the list
 
-%removeBoycottItemsFromAnOrder(CustomerName, OrderId, NewList):-
+removeBoycottItems([],[]):-!. % if list is empty then it returns empty list
+
+removeBoycottItems([H|T],List):-  % if item is boycott, remove it
+    isBoycott(H),
+    removeBoycottItems(T,List),!.
+
+removeBoycottItems([H|T],[H|L]):-  % if not boycott
+    removeBoycottItems(T,L),!.
+
+removeBoycottItemsFromAnOrder(CustomerName, OrderId, NewList):-
+    customer(X,CustomerName), % get customer id
+    order(X,OrderId,Items),   % get list of items
+    removeBoycottItems(Items,NewList),!.  % remove boycott items from list
 
 
 
@@ -160,7 +183,12 @@ getNumOfItems(CustomerName, OrderId ,Count):-
 % getTheDifferenceInPriceBetweenItemAndAlternative predicate
 % take the item and return the alternative and the differnce price between them
 
-% getTheDifferenceInPriceBetweenItemAndAlternative(Item, Alte, DiffPrice):-
+ getTheDifferenceInPriceBetweenItemAndAlternative(Item, Alter, DiffPrice):-
+    item(Item,_,P),       % get price of the item
+    alternative(Item,X),  % get the alternative
+    Alter = X,
+    item(X,_,P2),         % get price of the alternative
+    DiffPrice is P2 - P.  % calculate the difference in price
 
 
 
