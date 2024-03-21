@@ -63,9 +63,17 @@ append([H|T],L2,[H|R]):-
 % count the number of orders of the specified customer
 
 
+countOrdersOfCustomer(CustomerName, Count) :-
+    customer(CustomerId, CustomerName),
+    countOrdersWithCustomerId(CustomerId, 0, Count).
 
+countOrdersWithCustomerId(CustomerId, CurrentCount, Count) :-
+    OrderId is CurrentCount + 1,
+    order(CustomerId, OrderId, _),
+    NewCount is CurrentCount + 1,
+    countOrdersWithCustomerId(CustomerId, NewCount, Count).
 
-%countOrdersOfCustomer(X, Count):-
+countOrdersWithCustomerId(_, Count, Count).
 
 
 
@@ -98,7 +106,16 @@ getNumOfItems(CustomerName, OrderId ,Count):-
 % calcPriceOfOrder take the CustomerName and OrderId and reutrn the TotalPrice of the items
 
 
-% calcPriceOfOrder(CustomerName, OrderId ,TotalPrice):-
+calcPriceOfOrder(CustomerName, OrderId ,TotalPrice):-
+    customer(CustomerId,CustomerName),
+    order(CustomerId,OrderId,L),
+    sumItemsInList(L,TotalPrice).
+
+sumItemsInList([],0).
+sumItemsInList([Head|Tail], Sum) :-
+    sumItemsInList(Tail, SumOfTail),
+    item(Head,_,Price),
+    Sum is SumOfTail + Price .
 
 
 
@@ -112,7 +129,12 @@ getNumOfItems(CustomerName, OrderId ,Count):-
 
 % isBoycott take the item name and reutrn if is isBoycott or not
 
-%  isBoycott(CompanyName):-
+isBoycott(ItemName):-
+    item(ItemName,CompanyName,_),
+    boycott_company(CompanyName,_).
+
+isBoycott(CompanyName):-
+    boycott_company(CompanyName,_).
    
 
 
