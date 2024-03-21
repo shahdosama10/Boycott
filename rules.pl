@@ -50,7 +50,25 @@ append([H|T],L2,[H|R]):-
 % the list_orders predicate take the customer name (X) and return the L
 % and then call listOrderNum and pass the empty list and 1 (the first order) and the customer id and reutrn the L
 
-%list_orders(X, L) :-
+list_orders(X, L) :-
+   customer(Id, X),
+   listOrderNum([], 1, Id, L).
+
+
+% if there no order of the specific customer put the Acc to L and return the L
+
+listOrderNum(L, OrderId, Id, L) :-
+    \+ order(Id, OrderId, _).
+
+
+% the recusive call of listOrderNum
+
+listOrderNum(Acc, OrderId, Id, L) :-
+    order(Id, OrderId, L2), % get the order
+    % append the new order with the Acc(the old list that contain the preivous orders) and reutrn the NewAcc
+    append(Acc, [order(Id, OrderId, L2)], NewAcc),
+    NewOrderId is OrderId + 1, % increase the order id by 1 to get the next order
+    listOrderNum(NewAcc, NewOrderId, Id, L). % recusive call
 
 
 
@@ -125,7 +143,7 @@ sumItemsInList([Head|Tail], Sum) :-
 % IsBoycott take the item name and reutrn if is isBoycott or not
 
 %  isBoycott(ItemName):-
-   
+
 
 % isBoycott take the item name and reutrn if is isBoycott or not
 
@@ -135,7 +153,7 @@ isBoycott(ItemName):-
 
 isBoycott(CompanyName):-
     boycott_company(CompanyName,_).
-   
+
 
 
 
@@ -186,17 +204,58 @@ removeBoycottItemsFromAnOrder(CustomerName, OrderId, NewList):-
 % replaceBoycottItemsFromAnOrder predicate take the CustomerName and OrderId and return the list of items
 % after replace the boycott item with the alternative
 
-%replaceBoycottItemsFromAnOrder(CustomerName, OrderId, NewList) :-
+replaceBoycottItemsFromAnOrder(CustomerName, OrderId, NewList) :-
+    customer(Id, CustomerName),  % get the customer id
+    order(Id, OrderId, Items), % get the items of the order
+    replaceBoycott(Items, NewList). % call replaceBoycott predicate
+
+
+% the base case of replaceBoycott predicate
+% if the list is empty return the empty list
+
+replaceBoycott([], []).
+
+
+
+% if the item is not boycott keep it in the list by return [H|NewList]
+
+replaceBoycott([H|T], [H|NewList]) :-
+    \+ isBoycott(H), % indicate that the item is not boycott
+    replaceBoycott(T, NewList). % recusive call
+
+
+% if the item is boycott but there is no alternative for it
+% keep it in the list by [H|NewList]
+
+replaceBoycott([H|T], [H|NewList]) :-
+    isBoycott(H), % indicate that the item is boycott
+    \+ alternative(H, _), % indicate that there is no alternative for the item
+    replaceBoycott(T, NewList). % recusive call
+
+
+% if the item is boycott and there is alternative for it
+% ignore the item and reutrn the list with the alternative by [X|NewList]
+
+replaceBoycott([H|T], [X|NewList]) :-
+    isBoycott(H), % indicate that the item is boycott
+    alternative(H, X), % indicate that there is alternative for it
+    replaceBoycott(T, NewList). % recusive call
 
 
 
 %=======================================================================
 % Task 10
 
+
 % calcPriceAfterReplacingBoycottItemsFromAnOrder predicate is used to calculate the price after replacing BoycottItem with the alternative Items
 % take the customer name and order id and return the NewList after replacing the items and the TotalPrice
 
-% calcPriceAfterReplacingBoycottItemsFromAnOrder(CustomerName, OrderId, NewList, TotalPrice):-
+calcPriceAfterReplacingBoycottItemsFromAnOrder(CustomerName, OrderId, NewList, TotalPrice):-
+    customer(Id, CustomerName), % get the customer id
+    order(Id, OrderId, Items), % get the items
+    replaceBoycott(Items, NewList), % get the NewList with the alternative items
+    sumItemsInList(NewList, TotalPrice).  % call countPrice that take the NewList and return the TotalPrice
+
 
 
 %=======================================================================
@@ -205,11 +264,10 @@ removeBoycottItemsFromAnOrder(CustomerName, OrderId, NewList):-
 % getTheDifferenceInPriceBetweenItemAndAlternative predicate
 % take the item and return the alternative and the differnce price between them
 
- getTheDifferenceInPriceBetweenItemAndAlternative(Item, Alter, DiffPrice):-
+getTheDifferenceInPriceBetweenItemAndAlternative(Item, Alter, DiffPrice):-
     item(Item,_,P),       % get price of the item
-    alternative(Item,X),  % get the alternative
-    Alter = X,
-    item(X,_,P2),         % get price of the alternative
+    alternative(Item,Alter),  % get the alternative
+    item(Alter,_,P2),         % get price of the alternative
     DiffPrice is P2 - P.  % calculate the difference in price
 
 
