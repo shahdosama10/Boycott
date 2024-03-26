@@ -66,9 +66,9 @@ listOrderNum(L, OrderId, Id, L) :-
 listOrderNum(Acc, OrderId, Id, L) :-
     order(Id, OrderId, L2), % get the order
     % append the new order with the Acc(the old list that contain the preivous orders) and reutrn the NewAcc
-    append(Acc, [order(Id, OrderId, L2)], NewAcc),
+    append([order(Id, OrderId, L2)], Acc, NewAcc),
     NewOrderId is OrderId + 1, % increase the order id by 1 to get the next order
-    listOrderNum(NewAcc, NewOrderId, Id, L). % recusive call
+    listOrderNum(NewAcc, NewOrderId, Id, L),!. % recusive call
 
 
 
@@ -85,11 +85,14 @@ countOrdersOfCustomer(CustomerName, Count) :-
     customer(CustomerId, CustomerName),
     countOrdersWithCustomerId(CustomerId, 0, Count).
 
+% the countOrdersWithCustomerId predicate take the CustomerId ,
+% CurrentCount(orderId) and return the Count (number of orders)
+
 countOrdersWithCustomerId(CustomerId, CurrentCount, Count) :-
     OrderId is CurrentCount + 1,
     order(CustomerId, OrderId, _),
     NewCount is CurrentCount + 1,
-    countOrdersWithCustomerId(CustomerId, NewCount, Count).
+    countOrdersWithCustomerId(CustomerId, NewCount, Count),!.
 
 countOrdersWithCustomerId(_, Count, Count).
 
@@ -115,7 +118,7 @@ getItemsInOrderById(CustomerName, OrderId ,Items):-
 getNumOfItems(CustomerName, OrderId ,Count):-
     customer(X, CustomerName),  % get the customer id (X)
     order(X, OrderId, Items),   % get the items
-    count(Items, Count).        % get the number of items in the order (Count)
+    count(Items, Count),!.        % get the number of items in the order (Count)
 
 
 %=======================================================================
@@ -127,13 +130,13 @@ getNumOfItems(CustomerName, OrderId ,Count):-
 calcPriceOfOrder(CustomerName, OrderId ,TotalPrice):-
     customer(CustomerId,CustomerName),
     order(CustomerId,OrderId,L),
-    sumItemsInList(L,TotalPrice).
+    sumItemsInList(L,TotalPrice),!.
 
 sumItemsInList([],0).
 sumItemsInList([Head|Tail], Sum) :-
     sumItemsInList(Tail, SumOfTail),
-    item(Head,_,Price),
-    Sum is SumOfTail + Price .
+    item(Head,_,Price), % get the Price of the item
+    Sum is SumOfTail + Price. % update the sum
 
 
 
@@ -142,17 +145,17 @@ sumItemsInList([Head|Tail], Sum) :-
 
 % IsBoycott take the item name and reutrn if is isBoycott or not
 
-%  isBoycott(ItemName):-
 
 
-% isBoycott take the item name and reutrn if is isBoycott or not
 
 isBoycott(ItemName):-
     item(ItemName,CompanyName,_),
-    boycott_company(CompanyName,_).
+    boycott_company(CompanyName,_),!.
+
+% isBoycott take the company name and reutrn if is isBoycott or not
 
 isBoycott(CompanyName):-
-    boycott_company(CompanyName,_).
+    boycott_company(CompanyName,_),!.
 
 
 
@@ -207,7 +210,7 @@ removeBoycottItemsFromAnOrder(CustomerName, OrderId, NewList):-
 replaceBoycottItemsFromAnOrder(CustomerName, OrderId, NewList) :-
     customer(Id, CustomerName),  % get the customer id
     order(Id, OrderId, Items), % get the items of the order
-    replaceBoycott(Items, NewList). % call replaceBoycott predicate
+    replaceBoycott(Items, NewList),!. % call replaceBoycott predicate
 
 
 % the base case of replaceBoycott predicate
@@ -238,7 +241,7 @@ replaceBoycott([H|T], [H|NewList]) :-
 
 replaceBoycott([H|T], [X|NewList]) :-
     isBoycott(H), % indicate that the item is boycott
-    alternative(H, X), % indicate that there is alternative for it
+    alternative(H, X),!, % indicate that there is alternative for it
     replaceBoycott(T, NewList). % recusive call
 
 
@@ -254,7 +257,7 @@ calcPriceAfterReplacingBoycottItemsFromAnOrder(CustomerName, OrderId, NewList, T
     customer(Id, CustomerName), % get the customer id
     order(Id, OrderId, Items), % get the items
     replaceBoycott(Items, NewList), % get the NewList with the alternative items
-    sumItemsInList(NewList, TotalPrice).  % call countPrice that take the NewList and return the TotalPrice
+    sumItemsInList(NewList, TotalPrice),!.  % call countPrice that take the NewList and return the TotalPrice
 
 
 
@@ -266,7 +269,7 @@ calcPriceAfterReplacingBoycottItemsFromAnOrder(CustomerName, OrderId, NewList, T
 
 getTheDifferenceInPriceBetweenItemAndAlternative(Item, Alter, DiffPrice):-
     item(Item,_,P),       % get price of the item
-    alternative(Item,Alter),  % get the alternative
+    alternative(Item,Alter),!,  % get the alternative
     item(Alter,_,P2),         % get price of the alternative
     DiffPrice is P2 - P.  % calculate the difference in price
 
