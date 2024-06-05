@@ -5,7 +5,7 @@ This Prolog project provides a set of predicates to manage customer orders, dete
 ## Project Structure
 
 - `data.pl`: Contains the facts about customers, items, orders, boycott companies, and their alternatives.
-- `main.pl`: Contains the required predicates to solve the problem statements.
+- `rules.pl`: Contains the required predicates to solve the problem statements.
 
 ## Facts (data.pl)
 
@@ -188,7 +188,7 @@ alternative(ItemName, AlternativeItem).
 
 ## Usage
 
-1. Load the facts from `data.pl` and the predicates from `main.pl` in your Prolog environment.
+1. Load the facts from `data.pl` and the predicates from `rules.pl` in your Prolog environment.
 2. Query the required predicates as shown in the examples.
 
 ## Contributors
